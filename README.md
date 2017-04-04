@@ -22,3 +22,9 @@ p, _ := plugin.Open("./go-maxmind-geoip.so")
 ```
 ./build.sh
 ```
+
+### Run tests
+
+```
+go test ./example/...
+```
