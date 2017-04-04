@@ -2,32 +2,50 @@ package main
 
 import (
 	"github.com/oschwald/geoip2-golang"
-	"sync"
+	"net"
+	"net/http"
 )
 
-// Client struct
-type Client struct {
-	db    *geoip2.Reader
-	store map[string]*geoip2.City
-	m     *sync.RWMutex
-}
+var db *geoip2.Reader
 
-// NewClient func
-func NewClient() (*Client, error) {
+func initDB() error {
+	if db != nil {
+		return nil
+	}
+
 	dbBytes, err := Asset("geoip2-city.mmdb")
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	db, err := geoip2.FromBytes(dbBytes)
+	var dbErr error
+	db, dbErr = geoip2.FromBytes(dbBytes)
+	return dbErr
+}
+
+func GetCity(r *http.Request) (string, error) {
+	err := initDB()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	g := new(Client)
-	g.db = db
-	g.m = new(sync.RWMutex)
-	g.store = make(map[string]*geoip2.City)
+	ipStr := r.Header.Get("X-Real-IP")
+	if len(ipStr) == 0 {
+		ipStr = r.Header.Get("X-FORWARDED-FOR")
+	}
+	if len(ipStr) == 0 {
+		ipStr, _, _ = net.SplitHostPort(r.RemoteAddr)
+	}
 
-	return g, nil
+	ip := net.ParseIP(ipStr)
+	if ip == nil {
+		return "", nil
+	}
+
+	record, err := db.City(ip)
+	if err != nil {
+		return "", err
+	}
+
+	return record.City.Names["en"], nil
 }
