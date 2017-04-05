@@ -1,8 +1,10 @@
 ### For experimental usage only!
 
-This project contains an example with Go plugin which contains free GeoIP2 MaxMind's [database](http://dev.maxmind.com/geoip/geoip2/geolite2/).
+This [project](https://github.com/plutov/go-maxmind-geoip) contains an example with Go plugin which contains free GeoLite2 MaxMind's [database of ip addresses](http://dev.maxmind.com/geoip/geoip2/geolite2/).
 
-It builds single `go-maxmind-geoip.so` with already included database with help of `go-bindata`.
+It can find City by IP address.
+
+It builds single `go-maxmind-geoip.so` plugin file with already included database with help of `go-bindata`.
 
 ### How to use in Go
 
@@ -11,9 +13,11 @@ Download `.so` plugin:
 wget https://raw.githubusercontent.com/plutov/go-maxmind-geoip/master/go-maxmind-geoip.so
 ```
 
-Use `GetCity` function:
+Use functions:
 ```
 p, _ := plugin.Open("./go-maxmind-geoip.so")
+init, _ := p.Lookup("InitDB")
+init.(func() error)()
 gc, _ := p.Lookup("GetCity")
 city, _ := gc.(func(r *http.Request) (string, error))(r)
 ```

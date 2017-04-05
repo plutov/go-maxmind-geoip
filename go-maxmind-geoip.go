@@ -8,7 +8,7 @@ import (
 
 var db *geoip2.Reader
 
-func initDB() error {
+func InitDB() error {
 	if db != nil {
 		return nil
 	}
@@ -24,7 +24,7 @@ func initDB() error {
 }
 
 func GetCity(r *http.Request) (string, error) {
-	err := initDB()
+	err := InitDB()
 	if err != nil {
 		return "", err
 	}
